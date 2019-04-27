@@ -141,7 +141,6 @@ Response: 200
         "body": {}
     }
 ]
-200 : configuration saved
 ````
 
 #### index.js
