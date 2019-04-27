@@ -27,8 +27,8 @@ _Each time mock server get configured all previous configuration and history wil
 
 Request body shall contain an array of json elements with following values:
 * **url**: string, url for which to expect a call from the app, including params string
-* **method**: string, http method {GET, POST, PUT, DELETE}
 * **status**: number, which status shall be returned in response {200, 400, etc}
+* **method?**: string, http method {GET, POST, PUT, DELETE}
 * **timeout?**: number, to wait defined time before responding
 * **contentType?**: string, to return img or video back {png, jpg, mp4} see test-data folder; leave empty if no file shall be sent back
 * **responseBody?**: {} , response json body to be returned for given request }
