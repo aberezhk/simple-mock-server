@@ -1,5 +1,5 @@
 {
-  "name": "test",
+  "name": "simple-mock-server",
   "version": "0.0.1",
   "private": true,
   "scripts": {
