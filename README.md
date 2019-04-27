@@ -181,7 +181,7 @@ Then
 
 ## Built With
 
-* [Node](https://nodejs.org/en/)  - JavaScript runtime built
+* [Node](https://nodejs.org/en/)  - JavaScript runtime
 * [Express](https://expressjs.com/) - web application framework for Node.js
 
 ## Authors
