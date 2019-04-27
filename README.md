@@ -118,7 +118,6 @@ Response: 200
         }
     },
  }
-200 : configuration saved
 ````
 
 * **GET /mock/history** - returns an array of all requests made to mock server (excluding prefixed with /mock).
