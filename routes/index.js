@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const proxy = require('express-http-proxy');
 const fs = require('fs');
 const path = require('path');
 const router = express.Router();
@@ -31,7 +32,12 @@ Following errors are possible:
 router.all('/*', async function (req, res, next) {
     var element = mockConfiguration[req.originalUrl];
     if (element === undefined) {
-        res.status(400).send('request not found');
+        const port = req.app.get('serverport');
+        if (port){
+            res.redirect(`https://localhost:${port}${request.originalUrl}`);
+        } else {
+            res.status(400).send('request not found');
+        }
     } else {
         if (element.timeout) {
             await new Promise(resolve => setTimeout(resolve, element.timeout));

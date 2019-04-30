@@ -1,10 +1,10 @@
-var express = require("express");
-var mockRouter = require('./routes/mock');
-var appRouter = require('./routes/index');
-var app = express();
+const express = require("express");
+const mockRouter = require('./routes/mock');
+const appRouter = require('./routes/index');
+const app = express();
 
 app.set('port', process.env.PORT || 3000); // get port from environment or use 3000 by default
-
+app.set('serverport', process.env.SERVERPORT || null);
 app.use('/mock', mockRouter); // redirect all requests starting with /mock to mock-router
 app.use('/', appRouter); // use app router for all other requests
 
