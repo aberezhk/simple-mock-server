@@ -1,6 +1,6 @@
 {
   "name": "@aberezhk/simple-mock-server",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "scripts": {
     "start": "node app.js"
@@ -9,5 +9,6 @@
     "body-parser": "^1.18.3",
     "cookie-parser": "~1.4.3",
     "express": "~4.16.0",
+    "http-proxy-middleware": "^0.19.1"
   }
 }

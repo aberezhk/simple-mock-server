@@ -21,7 +21,7 @@ Request body: [
 url: '/one',
 method: 'POST',
 status: 200,
-responseBody: {foo: 'bar'},
+response: {foo: 'bar'},
 },
 {
 url: '/two',

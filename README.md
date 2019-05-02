@@ -5,8 +5,9 @@ This mock server will reply to requests sent to it by your app based on the prep
 * Mock server records all the request it receives and provides the log on HTTP GET request to /mock/history
 * Mock server can be configured with HTTP POST request to /mock/configure endpoint.
 * It can also provide its current configuration via HTTP GET request to /mock/configure endpoint.
+* NEW! Mock server can proxy not configured requests to defined host
 
-In current version mock server can provide either a response with json body
+In current version configured requests on mock server can provide either a response with json body
 or an jpg, png or mp4 file.
 
 ### Prerequisites
@@ -16,7 +17,9 @@ To use this mock server [Node](https://nodejs.org/en/) must be installed
 Checkout this project from git and navigate to the project folder
 * Install dependencies by running ``` npm install ```
 * To start the mock server on port 3000 (default) simply run: ``` npm start ```
-* To run mock server on other port run: ``` PORT:1234 node app.js ``` . Replace '1234' with desired port number
+* To run mock server on other port run: ``` PORT=1234 node app.js ``` . Replace '1234' with desired port number
+* To allow mock server to proxy not configured requests run: ``` SERVER='https://localhost:443' node app.js ```
+Replace SERVER value with location on the host to which not configured requests shall be proxied.
 
 Wait till 'Mock server running on port XXXX' message will appear in console.
 
@@ -31,7 +34,7 @@ Request body shall contain an array of json elements with following values:
 * **method?**: string, http method {GET, POST, PUT, DELETE}
 * **timeout?**: number, to wait defined time before responding
 * **contentType?**: string, to return img or video back {png, jpg, mp4} see test-data folder; leave empty if no file shall be sent back
-* **responseBody?**: {} , response json body to be returned for given request }
+* **response?**: {} , response json body to be returned for given request }
 
 An example of a request:
 ```
@@ -41,14 +44,14 @@ An example of a request:
    "url": "/one",
    "method": "GET",
    "status": 200,
-   "responseBody": { "test": "get one" }
+   "response": { "test": "get one" }
  },
  {
    "url": "/two",
    "method": "POST",
    "status": 200,
    "timeout": 5000,
-   "responseBody": { "test": "post two" }
+   "response": { "test": "post two" }
  },
  {
    "url": "/img",
@@ -60,7 +63,7 @@ An example of a request:
    "url": "/bad",
    "method": "GET",
    "status": 403,
- "responseBody": {
+ "response": {
    "test": "bad request test"
  }
  }
@@ -82,6 +85,7 @@ Following request attributes are recorded: originalUrl, method, headers, body
 
 app.js routes all requests prefixed with '/mock' to mock.js router.
 All other requests are routed to index.js
+If SERVER var was defined, then all not configured requests will be proxied to SERVER
 
 #### mock.js
 mock.js handles requests that are prefixed with /mock ``` example: http://localhost:3000/mock/configuration ``` and 
@@ -96,7 +100,7 @@ Body:
         "url": "/one",
         "method": "GET",
         "status": 200,
-        "responseBody": {
+        "response": {
             "test": "get one"
     },
 ] 
@@ -113,7 +117,7 @@ Response: 200
         "url": "/one",
         "method": "GET",
         "status": 200,
-        "responseBody": {
+        "response": {
             "test": "get one"
         }
     },
@@ -147,10 +151,16 @@ Response: 200
 index.js logs and provides a response to all requests sent to the mock server that are not prefixed with /mock
 Currently incoming requests are mapped to defined responses by url+params string only,
  thus different responses for the same url (but for example different http method) can not be configured.
+
 Given response for incoming request was found in mockConfiguration, defined response will be returned:
 1. specified file (contentType was set to either jpg, png or video) will be sent in response
 2. response with specified body and status will be sent
 3. If timeout was defined for given response function will wait for defined number of milliseconds before sending response
+
+Given response for incoming request was not found:
+1. If SERVER variable was not set, then a 400 error will be returned
+2. If SERVER variable was set, then request will be forwarded to SERVER and 
+a response from that server will be forwarded back to the client
 
 Following errors can occur:
 * **400: request not found** - no response for requested url was configured 
@@ -165,22 +175,24 @@ Given a POST request to http://localhost:3000/mock/configuration with following 
         "url": "/one",
         "method": "GET",
         "status": 200,
-        "responseBody": {
+        "response": {
             "test": "get one"
     },
 ] 
 ````
 
 Then 
-* on sending **any type of HTTP request** to http://localhost:3000/one the response will be: 
+1. on sending **any type of HTTP request** to http://localhost:3000/one the response will be: 
 ```` 200 : {"test": "get one"} ````
-* on sending request to any other url (ex: http://localhost:3000/two) the response will be: 
-```` 400 : request not found ````
+2. on sending request to any other url (ex: http://localhost:3000/two) the response will be:  
+* Given no SERVER set - 400 : request not found 
+* Given SERVER set - whatever that host returns for this request
 
 ## Built With
 
 * [Node](https://nodejs.org/en/)  - JavaScript runtime
 * [Express](https://expressjs.com/) - web application framework for Node.js
+* [http-proxy-middleware](https://www.npmjs.com/package/http-proxy-middleware) - proxy middleware
 
 ## Authors
 

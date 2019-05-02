@@ -1,6 +1,5 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const proxy = require('express-http-proxy');
 const fs = require('fs');
 const path = require('path');
 const router = express.Router();
@@ -26,15 +25,15 @@ If an item was found then
 2. response with specified body and status will be sent
 If timeout was defined for given response function will wait for defined number of milliseconds before sending response
 Following errors are possible:
-400 - url+params string was not found in mockConfiguration
+400 - url+params string was not found in mockConfiguration (
+    case when mock was started without SERVER var, otherwise request will be proxied to SERVER)
 404 - there is no file for the defined contentType
  */
 router.all('/*', async function (req, res, next) {
     var element = mockConfiguration[req.originalUrl];
     if (element === undefined) {
-        const port = req.app.get('serverport');
-        if (port){
-            res.redirect(`https://localhost:${port}${request.originalUrl}`);
+        if (req.app.get('server')){
+            next(); // go to next app router (proxy) if mock is started with SERVER var
         } else {
             res.status(400).send('request not found');
         }
@@ -43,7 +42,7 @@ router.all('/*', async function (req, res, next) {
             await new Promise(resolve => setTimeout(resolve, element.timeout));
         }
         if (element.contentType === undefined) {
-            res.status(element.status).json(element.responseBody);
+            res.status(element.status).json(element.response);
         } else {
             const filePath = path.join(__dirname, `../data/test.${element.contentType}`);
             fs.access(filePath, error => {
