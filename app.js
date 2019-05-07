@@ -20,7 +20,7 @@ Start mock server on some port
 To specify the port run mock server as ex.: PORT=3000 node app.js
 Otherwise port 3000 will be used by default
 To let mock server proxy requests to another server add SERVER var, ex. : SERVER='https://localhost:443' node app.js
-Example to start mock server on port 4000 and enable proxy: SERVER='https://localhost:443' PORT=4000 node app.js
+Example to start mock server on port 4000 and enable proxy: SERVER='https://localhost:443' PORT=3000 node app.js
  */
 app.listen(app.get('port'), function () {
     global.mockConfiguration = {}; //to store current configuration of mock server
