@@ -41,7 +41,7 @@ router.all('/*', async function (req, res, next) {
         if (element.timeout) {
             await new Promise(resolve => setTimeout(resolve, element.timeout));
         }
-        if (element.contentType === undefined) {
+        if (element.contentType === (undefined || '')) {
             res.status(element.status).json(element.response);
         } else {
             const filePath = path.join(__dirname, `../data/test.${element.contentType}`);
