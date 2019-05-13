@@ -6,6 +6,7 @@ This mock server will reply to requests sent to it by your app based on the prep
 * Mock server can be configured with HTTP POST request to /mock/configure endpoint.
 * It can also provide its current configuration via HTTP GET request to /mock/configure endpoint.
 * NEW! Mock server can proxy not configured requests to defined host
+* NEW! Mock server support minimatch https://github.com/isaacs/minimatch
 
 In current version configured requests on mock server can provide either a response with json body
 or an jpg, png or mp4 file.
@@ -29,10 +30,10 @@ In order to configure a mock server an http POST request to /configuration endpo
 _Each time mock server get configured all previous configuration and history will be cleared._
 
 Request body shall contain an array of json elements with following values:
-* **url**: string, url for which to expect a call from the app, including params string
+* **url**: string, url for which to expect a call from the app with query string. RegEx can also be used:  https://github.com/isaacs/minimatch 
 * **status**: number, which status shall be returned in response {200, 400, etc}
-* **method?**: string, http method {GET, POST, PUT, DELETE}
-* **timeout?**: number, to wait defined time before responding
+* **method?**: HttpMethod, http method {GET, POST, PUT, DELETE}
+* **delay?**: number, to wait defined time before responding
 * **contentType?**: string, to return img or video back {png, jpg, mp4} see test-data folder; leave empty if no file shall be sent back
 * **response?**: {} , response json body to be returned for given request }
 
@@ -50,7 +51,7 @@ An example of a request:
    "url": "/two",
    "method": "POST",
    "status": 200,
-   "timeout": 5000,
+   "delay": 5000,
    "response": { "test": "post two" }
  },
  {
@@ -77,11 +78,9 @@ Mock server consists of following items: app.js, mock.js and index.js
 #### app.js
 app.js exports express application. By default application will be listening on port 3000.
 On start two global variables are created: mockConfiguration and mockHistory.
-* **mockConfiguration** stores current mock configuration as an array of key:value pairs. 
-As a key url+params string of each element provided in the body of POST /mock/configuration request will be used.
-As a value item itself will be stored.
+* **mockConfiguration** stores current mock configuration as an array of MockedRequest elements. 
 * **mockHistory** stores all requests that come to mock server, excluding those prefixed with '/mock'.
-Following request attributes are recorded: originalUrl, method, headers, body
+Following request attributes are recorded: originalUrl, path, query string, method, headers, body
 
 app.js routes all requests prefixed with '/mock' to mock.js router.
 All other requests are routed to index.js
@@ -149,13 +148,16 @@ Response: 200
 
 #### index.js
 index.js logs and provides a response to all requests sent to the mock server that are not prefixed with /mock
-Currently incoming requests are mapped to defined responses by url+params string only,
- thus different responses for the same url (but for example different http method) can not be configured.
+Currently incoming requests are mapped to defined responses by
+ 1. url + params + method,
+ 2. (url+params)regEx + method
+Thus only one response can be configured at a time for a url + params + method combination
 
-Given response for incoming request was found in mockConfiguration, defined response will be returned:
+Given response for incoming request was found in mockConfiguration (either matching exact value or provided regExp)
+, defined response will be returned:
 1. specified file (contentType was set to either jpg, png or video) will be sent in response
 2. response with specified body and status will be sent
-3. If timeout was defined for given response function will wait for defined number of milliseconds before sending response
+3. If delay was defined for given response function will wait for defined number of milliseconds before sending response
 
 Given response for incoming request was not found:
 1. If SERVER variable was not set, then a 400 error will be returned
@@ -187,6 +189,19 @@ Then
 2. on sending request to any other url (ex: http://localhost:3000/two) the response will be:  
 * Given no SERVER set - 400 : request not found 
 * Given SERVER set - whatever that host returns for this request
+
+## MockedRequest:
+````
+MockedRequest {
+  "url": string,
+   "method": HttpMethod,
+   "status": number,
+   "delay"?: number,
+   "response"?: {},
+   "contentType"?: string
+}
+````
+
 
 ## Built With
 

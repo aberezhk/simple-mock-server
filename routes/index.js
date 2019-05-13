@@ -1,7 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+var minimatch = require("minimatch");
 const fs = require('fs');
 const path = require('path');
+const url = require('url');
 const router = express.Router();
 
 router.use(bodyParser.json()); // for parsing application/json
@@ -12,7 +14,13 @@ store all requests that come to this router in global variable mockHistory
 Following request attributes are recorded: originalUrl, method, headers, body
  */
 router.use(function (req, res, next) {
-    mockHistory.push({url: req.originalUrl, method: req.method, headers: req.headers, body: req.body});
+    mockHistory.push({
+        url: req.originalUrl,
+        path: req.path,
+        query: req.query,
+        method: req.method,
+        headers: req.headers,
+        body: req.body});
     next();
 });
 
@@ -30,9 +38,10 @@ Following errors are possible:
 404 - there is no file for the defined contentType
  */
 router.all('/*', async function (req, res, next) {
-    var element = mockConfiguration[req.originalUrl];
+    var element = findMockedRequest(req);
+    console.log({element});
     if (element === undefined) {
-        if (req.app.get('server')){
+        if (req.app.get('server') !== undefined){
             next(); // go to next app router (proxy) if mock is started with SERVER var
         } else {
             res.status(400).send('request not found');
@@ -41,7 +50,7 @@ router.all('/*', async function (req, res, next) {
         if (element.timeout) {
             await new Promise(resolve => setTimeout(resolve, element.timeout));
         }
-        if (element.contentType === (undefined || '')) {
+        if ((element.contentType === undefined) || (element.contentType === '')) {
             res.status(element.status).json(element.response);
         } else {
             const filePath = path.join(__dirname, `../data/test.${element.contentType}`);
@@ -55,5 +64,23 @@ router.all('/*', async function (req, res, next) {
         }
     }
 });
+
+// try first to find exact url + params + method match, if not find, try to search by regexp
+function findMockedRequest(req) {
+    var element = mockConfiguration.filter( (element) => {
+        return ((element.url === req.originalUrl) && (element.method === req.method));
+    })[0];
+    if (element){
+        return element;
+    } else {
+        element = mockConfiguration.filter( (element) => {
+            var original = req.originalUrl;
+            var current = element.url;
+            var result = minimatch(req.originalUrl, element.url);
+            return (minimatch(req.originalUrl, element.url) && (element.method === req.method));
+        })[0];
+    }
+    return element;
+}
 
 module.exports = router;

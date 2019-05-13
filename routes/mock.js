@@ -31,12 +31,11 @@ contentType: 'png',
 }]
  */
 router.post("/configuration", function (req, res) {
-    mockConfiguration = {};
+    mockConfiguration = [];
     mockHistory = [];
     var body = req.body;
     body.forEach(function (element) {
-        var url = element.url;
-        mockConfiguration[url] = element;
+        mockConfiguration.push(element);
     });
     res.status(200).send('configuration saved');
 });
