@@ -6,12 +6,22 @@ const app = express();
 
 app.set('port', process.env.PORT || 3000); // get port from environment or use 3000 by default
 app.set('server', process.env.SERVER || undefined);
+
+
+// proxy middleware options
+var proxyOptions = {
+    target: `${app.get('server')}`, // target host
+    changeOrigin: true,
+    logLevel: 'debug',
+    secure: false,
+};
+
 app.use('/mock', mockRouter); // redirect all requests starting with /mock to mock-router
 app.use('/', appRouter); // use app router for all other requests
 if (app.get('server')) { // if mock was started with SERVERPORT, then all not configured requests will be
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     app.use('/',
-        proxy({target: `${app.get('server')}`, secure: false, logLevel: 'debug'}));
+        proxy(proxyOptions));
 }
 
 

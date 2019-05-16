@@ -39,7 +39,6 @@ Following errors are possible:
  */
 router.all('/*', async function (req, res, next) {
     var element = findMockedRequest(req);
-    console.log({element});
     if (element === undefined) {
         if (req.app.get('server') !== undefined){
             next(); // go to next app router (proxy) if mock is started with SERVER var
@@ -74,9 +73,6 @@ function findMockedRequest(req) {
         return element;
     } else {
         element = mockConfiguration.filter( (element) => {
-            var original = req.originalUrl;
-            var current = element.url;
-            var result = minimatch(req.originalUrl, element.url);
             return (minimatch(req.originalUrl, element.url) && (element.method === req.method));
         })[0];
     }
