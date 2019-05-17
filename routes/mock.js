@@ -33,11 +33,15 @@ contentType: 'png',
 router.post("/configuration", function (req, res) {
     mockConfiguration = [];
     mockHistory = [];
-    var body = req.body;
-    body.forEach(function (element) {
-        mockConfiguration.push(element);
-    });
-    res.status(200).send('configuration saved');
+    if (body){
+        var body = req.body;
+        body.forEach(function (element) {
+            mockConfiguration.push(element);
+        });
+        res.status(200).send('configuration saved');
+    }else{
+        res.status(200).send('history and configuration cleared')
+    }
 });
 
 /*
