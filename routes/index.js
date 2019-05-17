@@ -46,8 +46,8 @@ router.all('/*', async function (req, res, next) {
             res.status(400).send('request not found');
         }
     } else {
-        if (element.timeout) {
-            await new Promise(resolve => setTimeout(resolve, element.timeout));
+        if (element.delay) {
+            await new Promise(resolve => setTimeout(resolve, element.delay));
         }
         if ((element.contentType === undefined) || (element.contentType === '')) {
             res.status(element.status).json(element.response);
