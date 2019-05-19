@@ -33,7 +33,7 @@ contentType: 'png',
 router.post("/configuration", function (req, res) {
     mockConfiguration = [];
     mockHistory = [];
-    if (body){
+    if (req.body.length > 0){
         var body = req.body;
         body.forEach(function (element) {
             mockConfiguration.push(element);
