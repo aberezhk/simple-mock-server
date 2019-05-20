@@ -9,7 +9,7 @@
     "body-parser": "^1.18.3",
     "cookie-parser": "~1.4.3",
     "express": "~4.16.0",
-    "http-proxy-middleware": "^0.19.1",
+    "express-http-proxy": "^1.5.1",
     "minimatch": "^3.0.4",
     "node": "^12.2.0"
   }

@@ -207,7 +207,8 @@ MockedRequest {
 
 * [Node](https://nodejs.org/en/)  - JavaScript runtime
 * [Express](https://expressjs.com/) - web application framework for Node.js
-* [http-proxy-middleware](https://www.npmjs.com/package/http-proxy-middleware) - proxy middleware
+* [express-http-proxy](https://www.npmjs.com/package/express-http-proxy) - proxy middleware
+* [minimatch](https://www.npmjs.com/package/minimatch)  - A minimal matching utility
 
 ## Authors
 

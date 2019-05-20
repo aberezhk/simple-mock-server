@@ -3,7 +3,6 @@ var bodyParser = require('body-parser');
 var router = express.Router();
 
 router.use(bodyParser.json()); // for parsing application/json
-router.use(bodyParser.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
 
 /*
 In order to prepare mock server to respond to requests it shall be configured first

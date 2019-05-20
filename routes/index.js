@@ -1,13 +1,9 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 var minimatch = require("minimatch");
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const router = express.Router();
-
-router.use(bodyParser.json()); // for parsing application/json
-router.use(bodyParser.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
 
 /*
 store all requests that come to this router in global variable mockHistory
