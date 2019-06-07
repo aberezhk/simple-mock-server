@@ -1,6 +1,8 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-var router = express.Router();
+import * as express from 'express';
+import * as bodyParser from 'body-parser';
+import {mockConfiguration, mockHistory} from '../server'
+import {MockedRequest} from "../models/mocked-request";
+let router = express.Router();
 
 router.use(bodyParser.json()); // for parsing application/json
 
@@ -30,11 +32,11 @@ contentType: 'png',
 }]
  */
 router.post("/configuration", function (req, res) {
-    mockConfiguration = [];
-    mockHistory = [];
+    mockConfiguration.length = 0;
+    mockHistory.length = 0;
     if (req.body.length > 0){
-        var body = req.body;
-        body.forEach(function (element) {
+        const body = req.body;
+        body.forEach(function (element: MockedRequest) {
             mockConfiguration.push(element);
         });
         res.status(200).send('configuration saved');
@@ -64,4 +66,4 @@ router.all("/*", function (req, res) {
     res.status(400).send('request not found');
 });
 
-module.exports = router;
+export default router;

@@ -1,8 +1,9 @@
-const express = require('express');
-var minimatch = require("minimatch");
-const fs = require('fs');
-const path = require('path');
-const url = require('url');
+import * as express from 'express';
+import * as minimatch from 'minimatch';
+import * as fs from 'fs';
+import * as path from 'path';
+import {mockHistory, mockConfiguration} from '../server'
+import {MockedRequest} from "../models/mocked-request";
 const router = express.Router();
 
 /*
@@ -34,7 +35,7 @@ Following errors are possible:
 404 - there is no file for the defined contentType
  */
 router.all('/*', async function (req, res, next) {
-    var element = findMockedRequest(req);
+    let element = findMockedRequest(req);
     if (element === undefined) {
         if (req.app.get('server') !== undefined){
             next(); // go to next app router (proxy) if mock is started with SERVER var
@@ -46,7 +47,7 @@ router.all('/*', async function (req, res, next) {
             await new Promise(resolve => setTimeout(resolve, element.delay));
         }
         if ((element.contentType === undefined) || (element.contentType === '')) {
-            res.status(element.status).json(element.response);
+            res.status(element.status as number).json(element.response);
         } else {
             const filePath = path.join(__dirname, `../data/test.${element.contentType}`);
             fs.access(filePath, error => {
@@ -61,18 +62,18 @@ router.all('/*', async function (req, res, next) {
 });
 
 // try first to find exact url + params + method match, if not find, try to search by regexp
-function findMockedRequest(req) {
-    var element = mockConfiguration.filter( (element) => {
+function findMockedRequest(req: any) {
+    let element = mockConfiguration.filter( (element: MockedRequest) => {
         return ((element.url === req.originalUrl) && (element.method === req.method));
     })[0];
     if (element){
         return element;
     } else {
-        element = mockConfiguration.filter( (element) => {
-            return (minimatch(req.originalUrl, element.url) && (element.method === req.method));
+        element = mockConfiguration.filter( (element: MockedRequest) => {
+            return (minimatch(req.originalUrl, element.url as string) && (element.method === req.method));
         })[0];
     }
     return element;
 }
 
-module.exports = router;
+export default router;

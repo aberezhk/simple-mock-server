@@ -18,11 +18,11 @@ To use this mock server [Node](https://nodejs.org/en/) must be installed
 Checkout this project from git and navigate to the project folder
 * Install dependencies by running ``` npm install ```
 * To start the mock server on port 3000 (default) simply run: ``` npm start ```
-* To run mock server on other port run: ``` PORT=1234 node app.js ``` . Replace '1234' with desired port number
-* To allow mock server to proxy not configured requests run: ``` SERVER='https://localhost:443' node app.js ```
+* To run mock server on other port run: ``` PORT=1234 npm start ``` . Replace '1234' with desired port number
+* To allow mock server to proxy not configured requests run: ``` SERVER='https://localhost:443' npm start ```
 Replace SERVER value with location on the host to which not configured requests shall be proxied.
 
-Wait till 'Mock server running on port XXXX' message will appear in console.
+Wait till 'Mock server running on port XXXX with server YYYY' message will appear in console.
 
 ### Configure mock server
 
@@ -73,21 +73,21 @@ An example of a request:
 
 ## Some useless info
 
-Mock server consists of following items: app.js, mock.js and index.js
+Mock server consists of following items: server.ts, mock-router.ts and rest-router.ts
 
-#### app.js
-app.js exports express application. By default application will be listening on port 3000.
+#### server.ts
+server.ts exports express application. By default application will be listening on port 3000.
 On start two global variables are created: mockConfiguration and mockHistory.
 * **mockConfiguration** stores current mock configuration as an array of MockedRequest elements. 
 * **mockHistory** stores all requests that come to mock server, excluding those prefixed with '/mock'.
 Following request attributes are recorded: originalUrl, path, query string, method, headers, body
 
-app.js routes all requests prefixed with '/mock' to mock.js router.
-All other requests are routed to index.js
+server.ts routes all requests prefixed with '/mock' to mock.js router.
+All other requests are routed to rest.js
 If SERVER var was defined, then all not configured requests will be proxied to SERVER
 
-#### mock.js
-mock.js handles requests that are prefixed with /mock ``` example: http://localhost:3000/mock/configuration ``` and 
+#### mock-router.ts
+mock-router.ts handles requests that are prefixed with /mock ``` example: http://localhost:3000/mock/configuration ``` and 
 has following endpoints:
 * **POST /mock/configuration** - allows to define url:response pairs to be handled by mock
 ````
@@ -146,8 +146,8 @@ Response: 200
 ]
 ````
 
-#### index.js
-index.js logs and provides a response to all requests sent to the mock server that are not prefixed with /mock
+#### rest-router.js
+rest-router.js logs and provides a response to all requests sent to the mock server that are not prefixed with /mock
 Currently incoming requests are mapped to defined responses by
  1. url + params + method,
  2. (url+params)regEx + method
