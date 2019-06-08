@@ -2,13 +2,14 @@
 
 This mock server will reply to requests sent to it by your app based on the prepared configuration.
 
+* Supports stubbing and proxying of http rest request
 * Mock server records all the request it receives and provides the log on HTTP GET request to /mock/history
 * Mock server can be configured with HTTP POST request to /mock/configure endpoint.
 * It can also provide its current configuration via HTTP GET request to /mock/configure endpoint.
-* NEW! Mock server can proxy not configured requests to defined host
-* NEW! Mock server support minimatch https://github.com/isaacs/minimatch
+* Mock server supports minimatch https://github.com/isaacs/minimatch
+* DRAFT: Supports stubbing of web socket requests, incomming and outgoing messages can be only strings for now
 
-In current version configured requests on mock server can provide either a response with json body
+In current version configured requests on mock server can provide either a response with a string, json body
 or an jpg, png or mp4 file.
 
 ### Prerequisites
@@ -30,13 +31,13 @@ In order to configure a mock server an http POST request to /configuration endpo
 _Each time mock server get configured all previous configuration and history will be cleared._
 
 Request body shall contain an array of json elements with following values:
-* **url**: string, url for which to expect a call from the app with query string. RegEx can also be used:  https://github.com/isaacs/minimatch 
-* **status**: number, which status shall be returned in response {200, 400, etc}
-* **method?**: HttpMethod, http method {GET, POST, PUT, DELETE}
+* **url?**: string, url for which to expect a call from the app with query string. RegEx can also be used:  https://github.com/isaacs/minimatch 
+* **status?**: number, which status shall be returned in response {200, 400, etc}
+* **method**: HttpMethod or 'WS' for web socket, {GET, POST, PUT, DELETE, WS}
 * **delay?**: number, to wait defined time before responding
 * **contentType?**: string, to return img or video back {png, jpg, mp4} see test-data folder; leave empty if no file shall be sent back
 * **response?**: {} , response json body to be returned for given request }
-
+* **message?**: WS message to stub (applicable only for ws), response message shall be defined in 'response'
 An example of a request:
 ```
  POST http://localhost:3000/mock/configuration
@@ -61,6 +62,11 @@ An example of a request:
    "contentType": "jpg"
  },
  {
+ method: 'WS',
+ message: '**',
+ response: 'this matches any ws message',
+ },
+ {
    "url": "/bad",
    "method": "GET",
    "status": 403,
@@ -73,7 +79,7 @@ An example of a request:
 
 ## Some useless info
 
-Mock server consists of following items: server.ts, mock-router.ts and rest-router.ts
+Mock server consists of following items: server.ts, mock-router.ts, rest-router.ts and ws-middleware.ts
 
 #### server.ts
 server.ts exports express application. By default application will be listening on port 3000.
@@ -151,7 +157,8 @@ rest-router.js logs and provides a response to all requests sent to the mock ser
 Currently incoming requests are mapped to defined responses by
  1. url + params + method,
  2. (url+params)regEx + method
-Thus only one response can be configured at a time for a url + params + method combination
+3. if method is WS, then method+message and method+(message)regEx
+Thus only one response can be configured at a time for a url + params + method or method+message combination
 
 Given response for incoming request was found in mockConfiguration (either matching exact value or provided regExp)
 , defined response will be returned:
@@ -209,6 +216,7 @@ MockedRequest {
 * [Express](https://expressjs.com/) - web application framework for Node.js
 * [express-http-proxy](https://www.npmjs.com/package/express-http-proxy) - proxy middleware
 * [minimatch](https://www.npmjs.com/package/minimatch)  - A minimal matching utility
+* [ws](https://www.npmjs.com/package/ws)  - Web socket server and client implementation
 
 ## Authors
 

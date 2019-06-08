@@ -23,12 +23,13 @@ const wss = new WebSocket.Server({server});
 
 app.use('/mock', mockRouter); // redirect all requests starting with /mock to mock-router
 app.use('/', restRouter); // use app router for all other requests
-if (app.get('server')) { // if mock was started with SERVERPORT, then all not configured requests will be
+if (app.get('server')) { // if mock was started with SERVERPORT, then all not configured requests will be proxied
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     app.use('/',
         proxy(`${app.get('server')}`, {}));
 }
 
+// web socket handling
 wss.on('connection', async (ws: WebSocket) => {
     //connection is up, let's add a simple simple event
     ws.on('message', async (message) => {
@@ -38,7 +39,8 @@ wss.on('connection', async (ws: WebSocket) => {
             ws.send(element.response);
         } else {
             if (app.get('server') !== undefined) {
-                // proxy
+                // TODO: proxy instead
+                ws.send('no match for ws message found')
             } else {
                 ws.send('no match for ws message found')
             }
@@ -47,7 +49,7 @@ wss.on('connection', async (ws: WebSocket) => {
     ws.send("connected");
 });
 
-//start our server
+//start the server
 server.listen(app.get('port'), () => {
     mockConfiguration = []; //to store current configuration of mock server
     mockHistory = []; // to store all the requests that were done to mock server

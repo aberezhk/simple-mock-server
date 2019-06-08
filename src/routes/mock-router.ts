@@ -9,10 +9,9 @@ router.use(bodyParser.json()); // for parsing application/json
 /*
 In order to prepare mock server to respond to requests it shall be configured first
 Send an http POST request to /mock/configuration endpoint with an array of MockedRequest
-Each MockedRequest element will be stored in global variable mockConfiguration as a key:value pair
-As a key MockedRequest.url will be used (url+params string)
-As a value MockedRequest item itself will be stored
+Each MockedRequest element will be stored in global variable mockConfiguration
 Each time POST /mock/configuration request is sent to mock server both previous configuration and history get cleared
+Only method parameter is mandatory and it accepts rest request method strings and 'WS' for websocket
 If all will go well, a response with status code 200 will be sent back
 
 Example:
@@ -29,6 +28,11 @@ url: '/two',
 method: 'GET',
 status: 200,
 contentType: 'png',
+},
+{
+method: 'WS',
+message: '**',
+response: 'this matches any ws message',
 }]
  */
 router.post("/configuration", function (req, res) {
