@@ -2,13 +2,14 @@
 
 This mock server will reply to requests sent to it by your app based on the prepared configuration.
 
+* Supports stubbing and proxying of http rest request
 * Mock server records all the request it receives and provides the log on HTTP GET request to /mock/history
 * Mock server can be configured with HTTP POST request to /mock/configure endpoint.
 * It can also provide its current configuration via HTTP GET request to /mock/configure endpoint.
-* NEW! Mock server can proxy not configured requests to defined host
-* NEW! Mock server support minimatch https://github.com/isaacs/minimatch
+* Mock server supports minimatch https://github.com/isaacs/minimatch
+* DRAFT: Supports stubbing of web socket requests, incomming and outgoing messages can be only strings for now
 
-In current version configured requests on mock server can provide either a response with json body
+In current version configured requests on mock server can provide either a response with a string, json body
 or an jpg, png or mp4 file.
 
 ### Prerequisites
@@ -18,11 +19,11 @@ To use this mock server [Node](https://nodejs.org/en/) must be installed
 Checkout this project from git and navigate to the project folder
 * Install dependencies by running ``` npm install ```
 * To start the mock server on port 3000 (default) simply run: ``` npm start ```
-* To run mock server on other port run: ``` PORT=1234 node app.js ``` . Replace '1234' with desired port number
-* To allow mock server to proxy not configured requests run: ``` SERVER='https://localhost:443' node app.js ```
+* To run mock server on other port run: ``` PORT=1234 npm start ``` . Replace '1234' with desired port number
+* To allow mock server to proxy not configured requests run: ``` SERVER='https://localhost:443' npm start ```
 Replace SERVER value with location on the host to which not configured requests shall be proxied.
 
-Wait till 'Mock server running on port XXXX' message will appear in console.
+Wait till 'Mock server running on port XXXX with server YYYY' message will appear in console.
 
 ### Configure mock server
 
@@ -30,13 +31,13 @@ In order to configure a mock server an http POST request to /configuration endpo
 _Each time mock server get configured all previous configuration and history will be cleared._
 
 Request body shall contain an array of json elements with following values:
-* **url**: string, url for which to expect a call from the app with query string. RegEx can also be used:  https://github.com/isaacs/minimatch 
-* **status**: number, which status shall be returned in response {200, 400, etc}
-* **method?**: HttpMethod, http method {GET, POST, PUT, DELETE}
+* **url?**: string, url for which to expect a call from the app with query string. RegEx can also be used:  https://github.com/isaacs/minimatch 
+* **status?**: number, which status shall be returned in response {200, 400, etc}
+* **method**: HttpMethod or 'WS' for web socket, {GET, POST, PUT, DELETE, WS}
 * **delay?**: number, to wait defined time before responding
 * **contentType?**: string, to return img or video back {png, jpg, mp4} see test-data folder; leave empty if no file shall be sent back
 * **response?**: {} , response json body to be returned for given request }
-
+* **message?**: WS message to stub (applicable only for ws), response message shall be defined in 'response'
 An example of a request:
 ```
  POST http://localhost:3000/mock/configuration
@@ -61,6 +62,11 @@ An example of a request:
    "contentType": "jpg"
  },
  {
+ method: 'WS',
+ message: '**',
+ response: 'this matches any ws message',
+ },
+ {
    "url": "/bad",
    "method": "GET",
    "status": 403,
@@ -73,21 +79,21 @@ An example of a request:
 
 ## Some useless info
 
-Mock server consists of following items: app.js, mock.js and index.js
+Mock server consists of following items: server.ts, mock-router.ts, rest-router.ts and ws-middleware.ts
 
-#### app.js
-app.js exports express application. By default application will be listening on port 3000.
+#### server.ts
+server.ts exports express application. By default application will be listening on port 3000.
 On start two global variables are created: mockConfiguration and mockHistory.
 * **mockConfiguration** stores current mock configuration as an array of MockedRequest elements. 
 * **mockHistory** stores all requests that come to mock server, excluding those prefixed with '/mock'.
 Following request attributes are recorded: originalUrl, path, query string, method, headers, body
 
-app.js routes all requests prefixed with '/mock' to mock.js router.
-All other requests are routed to index.js
+server.ts routes all requests prefixed with '/mock' to mock.js router.
+All other requests are routed to rest.js
 If SERVER var was defined, then all not configured requests will be proxied to SERVER
 
-#### mock.js
-mock.js handles requests that are prefixed with /mock ``` example: http://localhost:3000/mock/configuration ``` and 
+#### mock-router.ts
+mock-router.ts handles requests that are prefixed with /mock ``` example: http://localhost:3000/mock/configuration ``` and 
 has following endpoints:
 * **POST /mock/configuration** - allows to define url:response pairs to be handled by mock
 ````
@@ -146,12 +152,13 @@ Response: 200
 ]
 ````
 
-#### index.js
-index.js logs and provides a response to all requests sent to the mock server that are not prefixed with /mock
+#### rest-router.js
+rest-router.js logs and provides a response to all requests sent to the mock server that are not prefixed with /mock
 Currently incoming requests are mapped to defined responses by
  1. url + params + method,
  2. (url+params)regEx + method
-Thus only one response can be configured at a time for a url + params + method combination
+3. if method is WS, then method+message and method+(message)regEx
+Thus only one response can be configured at a time for a url + params + method or method+message combination
 
 Given response for incoming request was found in mockConfiguration (either matching exact value or provided regExp)
 , defined response will be returned:
@@ -209,6 +216,7 @@ MockedRequest {
 * [Express](https://expressjs.com/) - web application framework for Node.js
 * [express-http-proxy](https://www.npmjs.com/package/express-http-proxy) - proxy middleware
 * [minimatch](https://www.npmjs.com/package/minimatch)  - A minimal matching utility
+* [ws](https://www.npmjs.com/package/ws)  - Web socket server and client implementation
 
 ## Authors
 
