@@ -49,7 +49,7 @@ router.all('/*', async function (req, res, next) {
         if ((element.contentType === undefined) || (element.contentType === '')) {
             res.status(element.status as number).json(element.response);
         } else {
-            const filePath = path.join(__dirname, `../data/test.${element.contentType}`);
+            const filePath = path.join(__dirname, `../../../data/test.${element.contentType}`);
             fs.access(filePath, error => {
                 if (!error) {
                     res.sendFile(filePath);
